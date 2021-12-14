@@ -1,31 +1,26 @@
 package DAOs;
 
 import Factories.ConnectionFactory;
-import Models.Movie;
-import Models.Session;
+import Models.Category;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SessionDAO {
-    private String tableName = "sessions";
+public class CategoryDAO {
+    private String tableName = "categories";
     private Connection connection = ConnectionFactory.getConnection();
 
-    public SessionDAO() {
+    public CategoryDAO() {
         createTable();
     }
 
     public void createTable() {
-        String sql = "CREATE SEQUENCE IF NOT EXISTS session_id_seq;";
+        String sql = "CREATE SEQUENCE IF NOT EXISTS category_id_seq;";
 
         sql += "CREATE TABLE IF NOT EXISTS " + tableName + "(" +
-                "session_id BIGINT PRIMARY KEY DEFAULT nextval('session_id_seq')," +
-                "movie_id BIGINT," +
-                "date TEXT NOT NULL," +
-                "CONSTRAINT movie_id " +
-                    "FOREIGN KEY (movie_id)" +
-                    "REFERENCES movies(movie_id)" +
+                "category_id BIGINT PRIMARY KEY DEFAULT nextval('category_id_seq')," +
+                "name TEXT NOT NULL" +
                 ");";
 
         try {
@@ -38,9 +33,9 @@ public class SessionDAO {
         }
     }
 
-    public Session getById(Long id) {
+    public Category getById(Long id) {
         String sql = "SELECT * FROM " + tableName +
-                " WHERE session_id = ?;";
+                " WHERE category_id = ?;";
 
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -49,7 +44,7 @@ public class SessionDAO {
             ResultSet resultSet = stmt.executeQuery();
 
             while (resultSet.next()) {
-                return buildSession(resultSet);
+                return buildCategory(resultSet);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -58,25 +53,25 @@ public class SessionDAO {
         return null;
     }
 
-    public Session createSession(Session session) {
-        if (session != null) {
+    public Category createCategory(Category category) {
+        if (category != null) {
             String sql = "INSERT INTO " + tableName +
-                    "(date, movie_id)" +
-                    "VALUES (?, ?)";
+                    "(name)" +
+                    "VALUES (?)";
 
             try {
                 PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-                setSession(stmt, session);
+                stmt.setString(1, category.getName());
                 stmt.execute();
 
                 ResultSet resultSet = stmt.getGeneratedKeys();
 
                 while (resultSet.next()) {
-                    session.setId(resultSet.getLong(1));
+                    category.setId(resultSet.getLong(1));
                 }
 
-                return session;
+                return category;
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -84,18 +79,17 @@ public class SessionDAO {
         return null;
     }
 
-    public void editSession(Session session) {
-        if (session != null) {
+    public void editCategory(Category category) {
+        if (category != null) {
             String sql = "UPDATE " + tableName + " SET " +
-                    "movie_id = ?, date = ?" +
-                    "WHERE session_id = ?";
+                    "name = ?" +
+                    "WHERE category_id = ?";
 
             try {
                 PreparedStatement stmt = connection.prepareStatement(sql);
 
-                stmt.setLong(1, session.getPlaying().getId());
-                stmt.setString(2, session.getStartDate());
-                stmt.setLong(3, session.getId());
+                stmt.setString(1, category.getName());
+                stmt.setLong(2, category.getId());
 
                 stmt.execute();
             } catch (SQLException e) {
@@ -106,7 +100,7 @@ public class SessionDAO {
 
     public void deleteById(Long id) {
         if (id != null) {
-            String sql = "DELETE FROM " + tableName + " WHERE session_id = ?";
+            String sql = "DELETE FROM " + tableName + " WHERE category_id = ?";
 
              try {
                  PreparedStatement stmt = connection.prepareStatement(sql);
@@ -119,8 +113,8 @@ public class SessionDAO {
         }
     }
 
-    public List<Session> listSessions() {
-        List<Session> sessions = new ArrayList<>();
+    public List<Category> listCategories() {
+        List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM " + tableName;
 
         try {
@@ -128,37 +122,24 @@ public class SessionDAO {
             ResultSet resultSet = stmt.executeQuery();
 
             while (resultSet.next()) {
-                sessions.add(buildSession(resultSet));
+                categories.add(buildCategory(resultSet));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        return sessions;
+        return categories;
     }
 
-    private void setSession(PreparedStatement stmt, Session session) {
+    private Category buildCategory(ResultSet resultSet) {
         try {
-            stmt.setString(1, session.getStartDate());
-            stmt.setLong(2, session.getPlaying().getId());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+            Category category = new Category();
 
-    private Session buildSession(ResultSet resultSet) {
-        try {
-            Session session = new Session();
+            category.setId(resultSet.getLong("category_id"));
+            category.setBooks(new BookDAO().listBooksByCategory(category.getId()));
+            category.setName(resultSet.getString("name"));
 
-            session.setId(resultSet.getLong("session_id"));
-            session.setStartDate(resultSet.getString("date"));
-
-            MovieDAO movieDAO = new MovieDAO();
-            Movie movie = movieDAO.getById(resultSet.getLong("movie_id"));
-
-            session.setPlaying(movie);
-
-            return session;
+            return category;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

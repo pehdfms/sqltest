@@ -1,28 +1,29 @@
 package DAOs;
 
 import Factories.ConnectionFactory;
-import Models.Movie;
+import Models.Book;
+import Models.Library;
+import Models.Category;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MovieDAO {
-    private String tableName = "movies";
+public class LibraryDAO {
+    private String tableName = "libraries";
     private Connection connection = ConnectionFactory.getConnection();
 
-    public MovieDAO() {
+    public LibraryDAO() {
         createTable();
     }
 
     public void createTable() {
-        String sql = "CREATE SEQUENCE IF NOT EXISTS movie_id_seq;";
+        String sql = "CREATE SEQUENCE IF NOT EXISTS library_id_seq;";
 
         sql += "CREATE TABLE IF NOT EXISTS " + tableName + "(" +
-                "movie_id BIGINT PRIMARY KEY DEFAULT nextval('movie_id_seq')," +
-                "name TEXT NOT NULL," +
-                "category TEXT," +
-                "duration TEXT);";
+                "library_id BIGINT PRIMARY KEY DEFAULT nextval('library_id_seq')," +
+                "name TEXT NOT NULL" +
+                ");";
 
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -34,9 +35,9 @@ public class MovieDAO {
         }
     }
 
-    public Movie getById(Long id) {
+    public Library getById(Long id) {
         String sql = "SELECT * FROM " + tableName +
-                " WHERE movie_id = ?;";
+                " WHERE library_id = ?;";
 
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -45,7 +46,7 @@ public class MovieDAO {
             ResultSet resultSet = stmt.executeQuery();
 
             while (resultSet.next()) {
-                return buildMovie(resultSet);
+                return buildLibrary(resultSet);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -54,25 +55,25 @@ public class MovieDAO {
         return null;
     }
 
-    public Movie createMovie(Movie movie) {
-        if (movie != null) {
+    public Library createLibrary(Library library) {
+        if (library != null) {
             String sql = "INSERT INTO " + tableName +
-                    "(name, category, duration)" +
-                    "VALUES (?, ?, ?)";
+                    "(name)" +
+                    "VALUES (?)";
 
             try {
                 PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-                setMovie(stmt, movie);
+                stmt.setString(1, library.getName());
                 stmt.execute();
 
                 ResultSet resultSet = stmt.getGeneratedKeys();
 
                 while (resultSet.next()) {
-                    movie.setId(resultSet.getLong(1));
+                    library.setId(resultSet.getLong(1));
                 }
 
-                return movie;
+                return library;
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -80,17 +81,17 @@ public class MovieDAO {
         return null;
     }
 
-    public void editMovie(Movie movie) {
-        if (movie != null) {
+    public void editLibrary(Library library) {
+        if (library != null) {
             String sql = "UPDATE " + tableName + " SET " +
-                    "name = ?, category = ?, duration = ? " +
-                    "WHERE movie_id = ?";
+                    "name = ? " +
+                    "WHERE library_id = ?";
 
             try {
                 PreparedStatement stmt = connection.prepareStatement(sql);
 
-                setMovie(stmt, movie);
-                stmt.setLong(4, movie.getId());
+                stmt.setString(1, library.getName());
+                stmt.setLong(2, library.getId());
 
                 stmt.execute();
             } catch (SQLException e) {
@@ -101,7 +102,7 @@ public class MovieDAO {
 
     public void deleteById(Long id) {
         if (id != null) {
-            String sql = "DELETE FROM " + tableName + " WHERE movie_id = ?";
+            String sql = "DELETE FROM " + tableName + " WHERE library_id = ?";
 
             try {
                 PreparedStatement stmt = connection.prepareStatement(sql);
@@ -114,8 +115,8 @@ public class MovieDAO {
         }
     }
 
-    public List<Movie> listMovies() {
-        List<Movie> movies = new ArrayList<>();
+    public List<Library> listLibraries() {
+        List<Library> librarys = new ArrayList<>();
         String sql = "SELECT * FROM " + tableName;
 
         try {
@@ -123,62 +124,31 @@ public class MovieDAO {
             ResultSet resultSet = stmt.executeQuery();
 
             while (resultSet.next()) {
-                movies.add(buildMovie(resultSet));
+                librarys.add(buildLibrary(resultSet));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        return movies;
+        return librarys;
     }
 
-    private void setMovie(PreparedStatement stmt, Movie movie) {
+    public List<Book> listBooksByLibrary(Long id) {
+        return new BookDAO().listBooksByLibrary(id);
+    }
+
+    private Library buildLibrary(ResultSet resultSet) {
         try {
-            stmt.setString(1, movie.getName());
-            stmt.setString(2, movie.getCategory());
-            stmt.setString(3, movie.getDuration());
+            Library library = new Library();
+
+            library.setId(resultSet.getLong("library_id"));
+            library.setName(resultSet.getString("name"));
+
+            library.setBooks(listBooksByLibrary(library.getId()));
+
+            return library;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-
-    private Movie buildMovie(ResultSet resultSet) {
-        try {
-            Movie movie = new Movie();
-
-            movie.setId(resultSet.getLong("movie_id"));
-            movie.setName(resultSet.getString("name"));
-            movie.setCategory(resultSet.getString("category"));
-            movie.setDuration(resultSet.getString("duration"));
-
-            return movie;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

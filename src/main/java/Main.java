@@ -1,29 +1,35 @@
-import DAOs.MovieDAO;
-import DAOs.SessionDAO;
-import Views.MovieView;
-import Views.SessionView;
+import DAOs.*;
+import Views.*;
 
 public class Main {
     private static void createTables() {
-        MovieDAO movieDAO = new MovieDAO();
-        movieDAO.createTable();
-
-        SessionDAO sessionDAO = new SessionDAO();
-        sessionDAO.createTable();
+        new LibraryDAO().createTable();
+        new CategoryDAO().createTable();
+        new BookDAO().createTable();
     }
 
     public static void main(String[] args) {
         createTables();
-        sessionMenu();
+        menu();
     }
 
-    private static void movieMenu() {
-        MovieView view = new MovieView();
+    private static void bookMenu() {
+        BookView view = new BookView();
         view.menu();
     }
 
-    private static void sessionMenu() {
-        SessionView view = new SessionView();
+    private static void categoryMenu() {
+        CategoryView view = new CategoryView();
+        view.menu();
+    }
+
+    private static void libraryMenu() {
+        LibraryView view = new LibraryView();
+        view.menu();
+    }
+
+    private static void menu() {
+        MainView view = new MainView();
         view.menu();
     }
 }
