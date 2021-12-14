@@ -93,8 +93,9 @@ public class SessionDAO {
             try {
                 PreparedStatement stmt = connection.prepareStatement(sql);
 
-                setSession(stmt, session);
-                stmt.setLong(4, session.getId());
+                stmt.setLong(1, session.getPlaying().getId());
+                stmt.setString(2, session.getStartDate());
+                stmt.setLong(3, session.getId());
 
                 stmt.execute();
             } catch (SQLException e) {
