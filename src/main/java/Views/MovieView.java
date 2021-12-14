@@ -3,7 +3,6 @@ package Views;
 import Controllers.MovieController;
 import Models.Movie;
 
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class MovieView {
@@ -87,9 +86,9 @@ public class MovieView {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("--- DATA ---");
-            System.out.printf("1 - %s: %s\n", "Name", movie.getName());
-            System.out.printf("2 - %s: %s\n", "Category", movie.getCategory());
-            System.out.printf("3 - %s: %s\n", "Duration", movie.getDuration());
+            System.out.printf("1 - Name: %s\n", movie.getName());
+            System.out.printf("2 - Category: %s\n", movie.getCategory());
+            System.out.printf("3 - Duration: %s\n", movie.getDuration());
             System.out.println("0 - CONFIRM");
             System.out.println("-1 - CANCEL");
 
@@ -122,20 +121,17 @@ public class MovieView {
     }
 
     private void menuDelete() {
-        while (true) {
-            System.out.println("--- DELETE MOVIE ---");
-            printMovieList();
+        System.out.println("--- DELETE MOVIE ---");
+        printMovieList();
 
-            Movie movie = getById();
-            if (movie == null) {
-                System.out.println("Invalid ID, try again.");
-                continue;
-            }
-
-            controller.deleteById(movie);
-            System.out.println("Done!");
+        Movie movie = getById();
+        if (movie == null) {
+            System.out.println("Invalid ID, try again.");
             return;
         }
+
+        controller.deleteSession(movie);
+        System.out.println("Done!");
     }
 
     private void menuList() {
@@ -154,9 +150,8 @@ public class MovieView {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Choose ID:");
-        Long chosen_id = Long.valueOf(ViewUtils.getChoice(scanner));
-        Movie movie = controller.getById(chosen_id);
+        Long chosen_id = (long) ViewUtils.getChoice(scanner);
 
-        return movie;
+        return controller.getById(chosen_id);
     }
 }

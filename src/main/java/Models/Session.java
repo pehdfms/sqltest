@@ -16,11 +16,9 @@ public class Session {
 
     @Override
     public String toString() {
-        return "Session{" +
-                "startDate='" + startDate + '\'' +
-                ", playing=" + playing +
-                ", id=" + id +
-                '}';
+        return "ID " + id +
+                " - " + startDate +
+                " (NOW PLAYING: || " + playing + " ||)";
     }
 
     public String getStartDate() {

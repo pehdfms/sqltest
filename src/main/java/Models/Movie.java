@@ -19,9 +19,9 @@ public class Movie {
     @Override
     public String toString() {
         return "ID " + id +
-                " - " + name
-                + " (" + category + "): "
-                + duration;
+                " - " + name +
+                " (" + category + "): " +
+                duration;
     }
 
     public String getName() {

@@ -111,7 +111,6 @@ public class MovieDAO {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-
         }
     }
 

@@ -27,7 +27,7 @@ public class MovieController {
         dao.deleteById(id);
     }
 
-    public void deleteById(Movie movie) {
+    public void deleteSession(Movie movie) {
         deleteById(movie.getId());
     }
 
